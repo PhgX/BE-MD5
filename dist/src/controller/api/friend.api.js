@@ -21,6 +21,10 @@ class FriendController {
             yield friend_1.Friend.create(friend);
             res.status(200).json();
         });
+        this.getFriendList = (req, res) => __awaiter(this, void 0, void 0, function* () {
+            let friends = yield friend_1.Friend.find();
+            res.status(200).json();
+        });
     }
 }
 exports.default = new FriendController();

@@ -11,5 +11,11 @@ class FriendController {
     await Friend.create(friend)
     res.status(200).json()
   };
+
+  getFriendList = async (req: Request, res: Response) => {
+    let friends = await Friend.find()
+    res.status(200).json()
+  }
+
 }
 export default new FriendController();

@@ -15,7 +15,7 @@ exports.router = (0, express_1.Router)();
 exports.router.use("/users", user_router_1.userProfileRouter);
 exports.router.use("/posts", post_router_1.default);
 exports.router.use("/auth", auth_router_1.authRouter);
-exports.router.use("", friend_router_1.friendRouter);
+exports.router.use("/friends", friend_router_1.friendRouter);
 //LIKE ROUTER
 exports.router.use('/likes', like_router_1.default);
 //COMMENT ROUTER

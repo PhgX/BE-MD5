@@ -1,6 +1,6 @@
 import express from "express";
-import dotenv from "dotenv";
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
+import dotenv from 'dotenv';
 import bodyParser from "body-parser";
 import cors from "cors";
 import path from "path";
@@ -12,7 +12,7 @@ dotenv.config();
 app.use(cors());
 
 // connection
-const DB_URL = `mongodb://localhost:27017/md5`;
+const DB_URL = `mongodb+srv://PhgX:oMXRdfYgayTT2UBU@cluster0.cpnobwu.mongodb.net/test`;
 mongoose.connect(DB_URL).then(() => {
   console.log("DB Connected");
 });

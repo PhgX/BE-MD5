@@ -4,8 +4,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
-const dotenv_1 = __importDefault(require("dotenv"));
 const mongoose_1 = __importDefault(require("mongoose"));
+const dotenv_1 = __importDefault(require("dotenv"));
 const body_parser_1 = __importDefault(require("body-parser"));
 const cors_1 = __importDefault(require("cors"));
 const path_1 = __importDefault(require("path"));
@@ -15,7 +15,7 @@ const app = (0, express_1.default)();
 dotenv_1.default.config();
 app.use((0, cors_1.default)());
 // connection
-const DB_URL = `mongodb://localhost:27017/md5`;
+const DB_URL = `mongodb+srv://PhgX:oMXRdfYgayTT2UBU@cluster0.cpnobwu.mongodb.net/test`;
 mongoose_1.default.connect(DB_URL).then(() => {
     console.log("DB Connected");
 });

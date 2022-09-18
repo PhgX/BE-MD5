@@ -5,13 +5,15 @@ const friendSchema = new Schema({
     type: Schema.Types.ObjectId,
     ref: "User",
   },
-  idfriend: {
-    type: Schema.Types.ObjectId,
-    ref: "User",
-  },
+  idfriend: [
+    {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+    }
+  ],
   status: {
     type: String,
-  },
+  }
 });
 
 const Friend = model("Friend", friendSchema);

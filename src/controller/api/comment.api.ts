@@ -11,6 +11,7 @@ class commentController {
         }
         
     }
+    
     updateComment = async (req: Request, res: Response) => {
         try {
             let id = req.params.id;
@@ -20,6 +21,7 @@ class commentController {
             res.status(500).json(error);
         }
     };
+
     deleteComment = async (req: Request, res: Response) => {
         try {
             let id = req.params.id;

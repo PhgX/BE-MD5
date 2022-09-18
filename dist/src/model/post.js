@@ -4,25 +4,39 @@ const mongoose_1 = require("mongoose");
 const postSchema = new mongoose_1.Schema({
     text: {
         type: String,
-        // required: true,
-        minlength: 1,
+        required: true,
         maxlength: 280,
+        minlength: 5,
     },
-    image: [
-        {
-            type: String,
-        }
-    ],
-    video: [
-        {
-            type: String,
-        }
-    ],
-    userId: {
+    author: {
         type: mongoose_1.Schema.Types.ObjectId,
-        ref: 'User'
+        ref: "User",
     },
-    status: {
+    likes: [
+        {
+            type: mongoose_1.Schema.Types.ObjectId,
+            ref: "Like",
+        },
+    ],
+    comments: [
+        {
+            type: mongoose_1.Schema.Types.ObjectId,
+            ref: "Comment",
+        },
+    ],
+    isLiked: {
+        type: Boolean,
+        default: false,
+    },
+    commentsCount: {
+        type: Number,
+        default: 0,
+    },
+    likesCount: {
+        type: Number,
+        default: 0,
+    },
+    imageUrl: {
         type: String,
     },
 }, { timestamps: true });

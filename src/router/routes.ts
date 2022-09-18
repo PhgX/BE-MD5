@@ -14,7 +14,7 @@ export const router = Router();
 router.use("/users", userProfileRouter);
 router.use("/posts", routerPost);
 router.use("/auth", authRouter);
-router.use("", friendRouter);
+router.use("/friends", friendRouter);
 
 
 
