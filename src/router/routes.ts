@@ -18,10 +18,6 @@ router.use("/friends", friendRouter);
 
 
 
-
-
-
-
 //LIKE ROUTER
 router.use('/likes',routerLike);
 

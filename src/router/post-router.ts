@@ -9,25 +9,25 @@ const routerPost = require('express').Router();
 
 //LIKE ROUTER
 // routerPost.use("/likes", routerLike);
-routerPost.get("/getpost",auth, postController.getPostByUserId);
+
+//GET POST
+routerPost.get("/:id",auth, postController.getAllPostById);
 
 
 
 
 
 //ADD POST
-routerPost.post("",auth, postController.newPost);
+routerPost.post("",auth, postController.addNewPost);
 
 //UPDATE POST
 routerPost.put("/:id",auth, postController.updatePost);
 
 //DELETE POST
-routerPost.delete("/:id",auth, postController.deleteAPost);
+routerPost.delete("/:id",auth, postController.DeletePostById);
 
-//GET POST
-routerPost.get("/:id", postController.getPost);
 
-routerPost.get('/:id',postController.getPost);
+
 
 
 export default routerPost;

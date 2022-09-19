@@ -13,93 +13,150 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const post_1 = __importDefault(require("../../model/post"));
-const validator = require("validator");
-class postController {
+const like_1 = __importDefault(require("../../model/like"));
+class PostController {
     constructor() {
-        this.newPost = (req, res) => __awaiter(this, void 0, void 0, function* () {
-            try {
-                let newPost = req.body;
-                newPost.userId = req.decoded.id;
-                if (!validator.isEmpty(newPost.text)) {
-                    let newsPost = yield post_1.default.create(newPost);
-                    res.status(200).json(newsPost);
-                }
-                else {
-                    res.status(500).json("Please enter something...!");
-                }
-            }
-            catch (error) {
-                res.status(500).json(error);
-            }
-        });
-        this.getPostByUserId = (req, res) => __awaiter(this, void 0, void 0, function* () {
-            try {
-                let userId = req.decoded.id;
-                console.log(userId);
-                const post = yield post_1.default.find({ userId: userId });
-                res.status(200).json(post);
-            }
-            catch (error) {
-                res.status(500).json(error);
-            }
-        });
-        //GET A POST
-        this.getAPost = (req, res) => __awaiter(this, void 0, void 0, function* () {
-            try {
-                let id = req.params.id;
-                const post = yield post_1.default.findById(id).populate("user");
-                res.status(200).json(post);
-            }
-            catch (error) {
-                res.status(500).json(error);
-            }
-        });
         this.updatePost = (req, res) => __awaiter(this, void 0, void 0, function* () {
             try {
-                let id = req.params.id;
-                let post = yield post_1.default.findById(id);
-                yield (post === null || post === void 0 ? void 0 : post.updateOne({ $set: req.body }));
-                res.status(200).json(post);
+                const userId = req.user._id;
+                const posts = yield post_1.default.find()
+                    .sort({ createdAt: -1 })
+                    .populate("author")
+                    .exec();
+                const updatedPosts = posts.map((post) => {
+                    if (userId) {
+                        if (post.likes.includes(userId)) {
+                            post.isLiked = true;
+                        }
+                    }
+                    return post;
+                });
+                res.status(200).json({
+                    response: {
+                        posts: updatedPosts,
+                    },
+                    message: "Posts fetched successfully.",
+                });
             }
             catch (error) {
-                res.status(500).json(error);
+                res.status(500).json({
+                    message: "Something went wrong.",
+                    error: error.message,
+                });
             }
         });
-        this.deleteAPost = (req, res) => __awaiter(this, void 0, void 0, function* () {
+        this.getAllPostById = (req, res) => __awaiter(this, void 0, void 0, function* () {
             try {
-                let id = req.params.id;
-                yield post_1.default.findByIdAndDelete(id);
-                res.status(200).json(" Delete successfully!");
+                const userId = req.user._id;
+                const id = req.params.id;
+                const post = yield post_1.default.findOne({ _id: id }).populate("author").exec();
+                console.log('getAllPostById - post.api.ts', post);
+                if (post) {
+                    if (post.likes.includes(userId)) {
+                        post.isLiked = true;
+                    }
+                }
+                res.status(200).json({
+                    response: {
+                        post,
+                    },
+                    message: "Post fetched successfully.",
+                });
             }
             catch (error) {
-                res.status(500).json(error);
+                console.error(error);
+                res.status(500).json({
+                    message: "Something went wrong.",
+                    error: error.message,
+                });
             }
         });
-        //GET A POST
-        this.getPost = (req, res) => __awaiter(this, void 0, void 0, function* () {
+        this.addNewPost = (req, res) => __awaiter(this, void 0, void 0, function* () {
             try {
-                let id = req.params.id;
-                const post = yield post_1.default.find({ userId: id });
-                res.status(200).json(post);
+                const author = {
+                    name: req.user.name,
+                    handle: req.user.handle,
+                    _id: req.user._id,
+                };
+                const post = new post_1.default(Object.assign(Object.assign({}, req.body), { author }));
+                yield post.save();
+                res.status(201).json({
+                    response: {
+                        post,
+                    },
+                    message: "Post created successfully.",
+                });
             }
             catch (error) {
-                res.status(500).json(error);
+                console.error(error);
+                res.status(500).json({
+                    message: "Something went wrong.",
+                    error: error.message,
+                });
             }
         });
-        //LIKE POST
-        this.likeAPost = (req, res) => __awaiter(this, void 0, void 0, function* () {
+        this.DeletePostById = (req, res) => __awaiter(this, void 0, void 0, function* () {
             try {
-                let id = req.params.id;
-                console.log(id);
-                let like = yield post_1.default.findOne({ _id: id });
-                yield (like === null || like === void 0 ? void 0 : like.updateOne({ $pull: like }));
-                console.log(like);
-                res.status(200).json(like);
+                const userId = req.user._id;
+                const id = req.params.id;
+                const post = yield post_1.default.findOneAndDelete({ id, author: userId });
+                if (!post) {
+                    res.status(404).json({
+                        message: "Post couldn't be found.",
+                    });
+                }
+                res.json({
+                    response: {
+                        post,
+                    },
+                    message: "Post deleted successfully",
+                });
             }
             catch (error) {
-                res.status(500).json(error);
+                res.status(500).json({
+                    message: "Something went wrong.",
+                    error: error.message,
+                });
+            }
+        });
+        // like and unlike a post
+        this.LikeAndUnLikeAPost = (req, res) => __awaiter(this, void 0, void 0, function* () {
+            try {
+                const userId = req.user._id;
+                const post = yield post_1.default.findOne({ _id: req.body.id });
+                if (!post) {
+                    return res.status(404).json({
+                        message: "Post couldn't be found.",
+                    });
+                }
+                const foundLike = yield like_1.default.findOne({ postId: post._id, author: userId });
+                if (!foundLike) {
+                    post.isLiked = true;
+                    const newLike = new like_1.default({ postId: post._id, author: userId });
+                    yield newLike.save();
+                    console.log('post - post.api.ts', post);
+                    // post.likes.push(newLike);
+                }
+                else {
+                    post.isLiked = false;
+                    yield like_1.default.findOneAndDelete({ postId: post._id, author: userId });
+                    // const foundIndex = post.likes.indexOf(foundLike._id);
+                    // post.likes.splice(foundIndex, 1);
+                }
+                yield post.save();
+                res.status(200).json({
+                    response: { post },
+                    message: "Post updated successfully.",
+                });
+            }
+            catch (error) {
+                console.error(error);
+                res.status(500).json({
+                    message: "Something went wrong.",
+                    error: error.message,
+                });
             }
         });
     }
 }
-exports.default = new postController();
+exports.default = new PostController;

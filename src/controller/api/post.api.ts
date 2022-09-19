@@ -1,91 +1,153 @@
-import { User } from "../../model/user";
+
 import Post from "../../model/post";
-import { Request, response, Response } from "express";
-const validator = require("validator");
+import Like from "../../model/like";
+import express, { Request, Response } from "express";
+import { Error } from "mongoose";
 
-class postController {
-  newPost = async (req: any, res: Response) => {
+class PostController {
+  updatePost = async (req : any, res: Response) => {
     try {
-      let newPost = req.body;
-      newPost.userId = req.decoded.id;
-      if (!validator.isEmpty(newPost.text)) {
-        let newsPost = await Post.create(newPost);
-        res.status(200).json(newsPost);
-      } else {
-        res.status(500).json("Please enter something...!");
+      const userId = req.user._id;
+      const posts = await Post.find()
+        .sort({ createdAt: -1 })
+        .populate("author")
+        .exec();
+        
+      const updatedPosts = posts.map((post) => {
+        if (userId) {
+            if (post.likes.includes(userId)) {
+            post.isLiked = true;
+          }
+        }
+        
+        return post;
+      });
+      res.status(200).json({
+        response: {
+          posts: updatedPosts,
+        },
+        message: "Posts fetched successfully.",
+      });
+    } catch (error: any) {
+      res.status(500).json({
+        message: "Something went wrong.",
+        error: error.message,
+      })
+    }
+  };
+  
+  getAllPostById = async (req : any, res: any) => {
+    try {
+      const userId = req.user._id;
+      const id = req.params.id;
+      const post = await Post.findOne({ _id: id }).populate("author").exec();
+      console.log('getAllPostById - post.api.ts', post);
+      if(post) {
+          if (post.likes.includes(userId)) {
+          post.isLiked = true;
+        }
       }
-    } catch (error) {
-      res.status(500).json(error);
+      res.status(200).json({
+        response: {
+          post,
+        },
+        message: "Post fetched successfully.",
+      });
+    } catch (error : any) {
+      console.error(error);
+      res.status(500).json({
+        message: "Something went wrong.",
+        error: error.message,
+      });
     }
   };
-
-  getPostByUserId = async (req: any, res: Response) => {
-
+  
+  addNewPost = async (req : any  , res: any) => {
     try {
-      let userId = req.decoded.id;
-      console.log(userId)
-      const post = await Post.find({ userId: userId });
-      res.status(200).json(post);
-    } catch (error) {
-      res.status(500).json(error);
+      const author = {
+        name: req.user.name,
+        handle: req.user.handle,
+        _id: req.user._id,
+      };
+      const post = new Post({ ...req.body, author });
+      
+      await post.save();
+      res.status(201).json({
+        response: {
+          post,
+        },
+        message: "Post created successfully.",
+      });
+    } catch (error : any) {
+      console.error(error);
+      res.status(500).json({
+        message: "Something went wrong.",
+        error: error.message,
+      });
     }
   };
-
-  //GET A POST
-  getAPost = async (req: any, res: Response) => {
+  
+  DeletePostById = async (req : any  , res: any) => {
     try {
-      let id = req.params.id;
-      const post = await Post.findById(id).populate("user");
-      res.status(200).json(post);
-    } catch (error) {
-      res.status(500).json(error);
+      const userId = req.user._id;
+      const id = req.params.id;
+      const post = await Post.findOneAndDelete({ id, author: userId });
+      if (!post) {
+        res.status(404).json({
+          message: "Post couldn't be found.",
+        });
+      }
+      res.json({
+        response: {
+          post,
+        },
+        message: "Post deleted successfully",
+      });
+    } catch (error : any) {
+      res.status(500).json({
+        message: "Something went wrong.",
+        error: error.message,
+      });
     }
   };
-  updatePost = async (req: Request, res: Response) => {
+  
+  // like and unlike a post
+  LikeAndUnLikeAPost = async (req : any  , res: any) => {
     try {
-      let id = req.params.id;
-      let post = await Post.findById(id);
-      await post?.updateOne({ $set: req.body });
-      res.status(200).json(post);
-    } catch (error) {
-      res.status(500).json(error);
-    }
-  };
-  deleteAPost = async (req: Request, res: Response) => {
-    try {
-      let id = req.params.id;
-      await Post.findByIdAndDelete(id);
-      res.status(200).json(" Delete successfully!");
-    } catch (error) {
-      res.status(500).json(error);
-    }
-  };
-
-  //GET A POST
-  getPost = async (req: Request, res: Response) => {
-    try {
-      let id = req.params.id;
-      const post = await Post.find({ userId: id });
-      res.status(200).json(post);
-    } catch (error) {
-      res.status(500).json(error);
-    }
-  };
-
-  //LIKE POST
-  likeAPost = async (req: Request, res: Response) => {
-    try {
-      let id = req.params.id;
-      console.log(id);
-      let like = await Post.findOne({ _id: id });
-      await like?.updateOne({ $pull: like });
-      console.log(like);
-      res.status(200).json(like);
-    } catch (error) {
-      res.status(500).json(error);
+      const userId = req.user._id;
+      const post = await Post.findOne({ _id: req.body.id });
+      if (!post) {
+        return res.status(404).json({
+          message: "Post couldn't be found.",
+        });
+      }
+      const foundLike = await Like.findOne({ postId: post._id, author: userId });
+      if (!foundLike) {
+        post.isLiked = true;
+        const newLike = new Like({ postId: post._id, author: userId });
+        await newLike.save();
+        console.log('post - post.api.ts', post)
+        // post.likes.push(newLike);
+      } else {
+        post.isLiked = false;
+        await Like.findOneAndDelete({ postId: post._id, author: userId });
+        // const foundIndex = post.likes.indexOf(foundLike._id);
+        // post.likes.splice(foundIndex, 1);
+      }
+  
+      await post.save();
+      res.status(200).json({
+        response: { post },
+        message: "Post updated successfully.",
+      });
+    } catch (error : any) {
+      console.error(error);
+      res.status(500).json({
+        message: "Something went wrong.",
+        error: error.message,
+      });
     }
   };
 }
 
-
-export default new postController();
+export default new PostController;

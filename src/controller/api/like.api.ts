@@ -1,6 +1,6 @@
 import { Response } from 'express';
 // import Post from 'src/model/post';
-import { Like } from '../../model/like';
+import  Like  from '../../model/like';
 class likeController {
     async like(req: any, res: Response) {
         try {

@@ -10,14 +10,12 @@ const routerPost = require('express').Router();
 // routerPost.use('/comments',routerCommnet)
 //LIKE ROUTER
 // routerPost.use("/likes", routerLike);
-routerPost.get("/getpost", auth_1.auth, post_api_1.default.getPostByUserId);
+//GET POST
+routerPost.get("/:id", auth_1.auth, post_api_1.default.getAllPostById);
 //ADD POST
-routerPost.post("", auth_1.auth, post_api_1.default.newPost);
+routerPost.post("", auth_1.auth, post_api_1.default.addNewPost);
 //UPDATE POST
 routerPost.put("/:id", auth_1.auth, post_api_1.default.updatePost);
 //DELETE POST
-routerPost.delete("/:id", auth_1.auth, post_api_1.default.deleteAPost);
-//GET POST
-routerPost.get("/:id", post_api_1.default.getPost);
-routerPost.get('/:id', post_api_1.default.getPost);
+routerPost.delete("/:id", auth_1.auth, post_api_1.default.DeletePostById);
 exports.default = routerPost;

@@ -15,7 +15,8 @@ const app = (0, express_1.default)();
 dotenv_1.default.config();
 app.use((0, cors_1.default)());
 // connection
-const DB_URL = `mongodb+srv://PhgX:oMXRdfYgayTT2UBU@cluster0.cpnobwu.mongodb.net/test`;
+require('dotenv').config();
+const DB_URL = process.env.DB_URL || "";
 mongoose_1.default.connect(DB_URL).then(() => {
     console.log("DB Connected");
 });
